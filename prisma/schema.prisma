@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Event {
+  id                    Int              @unique @default(autoincrement())
+  title                 String
+  description           String?
+  startDateTime         DateTime
+  startDateTimeUnix     Int
+  startDateTimeTZOffset Int
+  endDateTime           DateTime
+  endDateTimeUnix       Int
+  endDateTimeTZOffset   Int
+  timezone              String
+  location              String
+  hash                  String
+  series                Boolean
+  limit                 Int
+  typeId                Int
+  type                  EventType        @relation(fields: [typeId], references: [id])
+  proposerEmail         String
+  proposer              User             @relation(fields: [proposerEmail], references: [email])
+  RSVP                  RSVP[]
+  GoogleCalendar        GoogleCalendar[]
+  Slack                 Slack[]
+}
+
+model User {
+  email         String   @unique
+  username      String
+  firstName     String
+  lastName      String
+  block         Int
+  sendReminders Boolean? @default(false)
+  Event         Event[]
+}
+
+model EventType {
+  id    Int     @unique @default(autoincrement())
+  type  String
+  emoji String
+  Event Event[]
+}
+
+model RSVP {
+  eventId   Int   @unique
+  event     Event @relation(fields: [eventId], references: [id])
+  attendees String[]
+}
+
+model GoogleCalendar {
+  eventId        Int @unique
+  event          Event  @relation(fields: [eventId], references: [id])
+  gCalEventId    String?
+  gCalCalendarId String
+}
+
+model Slack {
+  eventId   Int @unique
+  event     Event  @relation(fields: [eventId], references: [id])
+  messageId String?
+  channelId String
+}
